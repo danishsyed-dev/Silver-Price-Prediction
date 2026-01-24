@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Silver Price Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="logo">
+                <span class="logo-icon">🪙</span>
+                <span class="logo-text">Silver Predictor</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/predict">Predict</a>
+                <a href="/about">About</a>
+            </div>
+        </nav>
+
+        <main class="error-page">
+            <div class="error-container">
+                <div class="error-icon">⚠️</div>
+                <h1>Oops! Something went wrong</h1>
+                <p class="error-message">{{ error }}</p>
+
+                <div class="error-suggestions">
+                    <h3>Possible Solutions:</h3>
+                    <ul>
+                        <li>Make sure you have trained the model first by running the training pipeline</li>
+                        <li>Check your internet connection for fetching live market data</li>
+                        <li>Try again in a few moments</li>
+                    </ul>
+                </div>
+
+                <div class="error-actions">
+                    <a href="/predict" class="btn btn-primary">
+                        <span>🔄</span> Try Again
+                    </a>
+                    <a href="/" class="btn btn-secondary">
+                        <span>🏠</span> Go Home
+                    </a>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>© 2024 Silver Price Prediction. For educational purposes only.</p>
+        </footer>
+    </div>
+</body>
+
+</html>

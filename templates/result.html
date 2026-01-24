@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Report | SilverPredictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <nav class="navbar">
+            <div class="container nav-container">
+                <div class="logo">
+                    <div class="logo-symbol">Ag</div>
+                    <span class="logo-text">SilverPredictor</span>
+                </div>
+                <div class="nav-links">
+                    <a href="/">Overview</a>
+                    <a href="/predict">Analysis Tool</a>
+                    <a href="/about">Methodology</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="result-section">
+            <div class="container result-container">
+                <div class="report-header">
+                    <div class="report-title">
+                        <span class="badge-outline">CONFIDENTIAL REPORT</span>
+                        <h1>Market Analysis Report</h1>
+                    </div>
+                    <div class="report-meta">
+                        <span>Generated: {{ result.timestamp }}</span>
+                        <span>Reference: USD/INR ₹{{ result.usd_to_inr_rate }}</span>
+                    </div>
+                </div>
+
+                <!-- Primary Insight Card -->
+                <div class="insight-card {{ result.direction }}">
+                    <div class="insight-main">
+                        <div class="insight-label">Forecasted Price (10g)</div>
+                        <div class="insight-value">
+                            ₹{{ result.predicted_inr_per_10g_gst | round(0) | int }}
+                            <span class="insight-gst">incl. GST</span>
+                        </div>
+                    </div>
+
+                    <div class="insight-change">
+                        <div class="change-label">Expected Deviation</div>
+                        <div class="change-value">
+                            {% if result.direction == 'up' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M18 15l-6-6-6 6" />
+                            </svg>
+                            +₹{{ result.price_change_inr_10g | abs }}
+                            {% else %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                            -₹{{ result.price_change_inr_10g | abs }}
+                            {% endif %}
+                            <span class="change-pct">({{ result.pct_change }}%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Analysis Grid -->
+                <div class="analysis-breakdown">
+                    <div class="data-table-card">
+                        <h3>Price Structure Analysis</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Unit</th>
+                                    <th>Current Rate (ex. GST)</th>
+                                    <th>Forecast Rate (ex. GST)</th>
+                                    <th class="highlight">Final Forecast (incl. GST)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="unit-col">1 Gram</td>
+                                    <td>₹{{ result.current_inr_per_1g | round(0) | int }}</td>
+                                    <td>₹{{ result.predicted_inr_per_1g | round(0) | int }}</td>
+                                    <td class="highlight">₹{{ result.predicted_inr_per_1g_gst | round(0) | int }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="unit-col">10 Grams</td>
+                                    <td>₹{{ result.current_inr_per_10g | round(0) | int }}</td>
+                                    <td>₹{{ result.predicted_inr_per_10g | round(0) | int }}</td>
+                                    <td class="highlight">₹{{ result.predicted_inr_per_10g_gst | round(0) | int }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="unit-col">1 Kilogram</td>
+                                    <td>₹{{ "{:,.0f}".format(result.current_inr_per_kg) }}</td>
+                                    <td>₹{{ "{:,.0f}".format(result.predicted_inr_per_kg) }}</td>
+                                    <td class="highlight">₹{{ "{:,.0f}".format(result.predicted_inr_per_kg_gst) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="side-metrics">
+                        <!-- GST Card -->
+                        <div class="metric-card">
+                            <div class="card-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                                    <line x1="2" y1="10" x2="22" y2="10" />
+                                </svg>
+                            </div>
+                            <h3>Tax Component</h3>
+                            <div class="metric-detail">
+                                <label>GST Rate</label>
+                                <span>3.0%</span>
+                            </div>
+                            <div class="metric-detail">
+                                <label>Tax per 10g</label>
+                                <span>₹{{ result.gst_per_10g | round(2) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Global Metric -->
+                        <div class="metric-card">
+                            <div class="card-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                    <path
+                                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                </svg>
+                            </div>
+                            <h3>International Spot</h3>
+                            <div class="metric-detail">
+                                <label>Current</label>
+                                <span>${{ result.current_price_usd }}/oz</span>
+                            </div>
+                            <div class="metric-detail">
+                                <label>Forecast</label>
+                                <span>${{ result.predicted_price_usd }}/oz</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-actions">
+                    <a href="/predict" class="btn btn-primary">Run New Analysis</a>
+                    <a href="/" class="btn btn-outline">Return to Dashboard</a>
+                </div>
+
+                <div class="report-footer">
+                    <p>
+                        This automated report is for informational purposes only.
+                        GST is calculated at 3%. Price variations may occur due to local premiums.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

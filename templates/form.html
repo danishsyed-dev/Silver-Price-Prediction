@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Analysis | SilverPredictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <nav class="navbar">
+            <div class="container nav-container">
+                <div class="logo">
+                    <div class="logo-symbol">Ag</div>
+                    <span class="logo-text">SilverPredictor</span>
+                </div>
+                <div class="nav-links">
+                    <a href="/">Overview</a>
+                    <a href="/predict" class="active">Analysis Tool</a>
+                    <a href="/about">Methodology</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="predict-section">
+            <div class="container predict-container">
+                <div class="predict-header-clean">
+                    <h1>Silver Price Forecast</h1>
+                    <p>Generate next-day price predictions based on real-time market indicators.</p>
+                </div>
+
+                <div class="analysis-grid">
+                    <!-- Left: Current Market Status -->
+                    <div class="market-status-card">
+                        {% if indian_prices %}
+                        <div class="status-header">
+                            <h3>Current Market Status</h3>
+                            <span class="live-badge">LIVE</span>
+                        </div>
+
+                        <div class="status-metrics">
+                            <div class="metric-row">
+                                <label>Silver Spot (10g)</label>
+                                <span class="metric-val">₹{{ indian_prices.inr_per_10_grams_with_gst | round(0) | int
+                                    }}</span>
+                            </div>
+                            <div class="metric-row secondary">
+                                <label>Excl. GST</label>
+                                <span>₹{{ indian_prices.inr_per_10_grams | round(0) | int }}</span>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="metric-grid">
+                                <div class="mini-metric">
+                                    <label>1 Gram</label>
+                                    <span>₹{{ indian_prices.inr_per_gram_with_gst | round(0) | int }}</span>
+                                </div>
+                                <div class="mini-metric">
+                                    <label>1 KG</label>
+                                    <span>₹{{ "{:,.0f}".format(indian_prices.inr_per_kg_with_gst) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="market-details">
+                                <div class="detail-item">
+                                    <span class="label">USD Rate</span>
+                                    <span class="value">${{ indian_prices.usd_price }}/oz</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">Exchange</span>
+                                    <span class="value">₹{{ indian_prices.usd_to_inr_rate }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="loading-status">
+                            Loading Market Data...
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right: Prediction Action -->
+                    <div class="action-card">
+                        <div class="action-header">
+                            <h3>Generate Forecast</h3>
+                        </div>
+
+                        <div class="process-steps">
+                            <div class="step">
+                                <span class="step-num">1</span>
+                                <span class="step-text">Analyze global technical indicators</span>
+                            </div>
+                            <div class="step">
+                                <span class="step-num">2</span>
+                                <span class="step-text">Process historical price patterns</span>
+                            </div>
+                            <div class="step">
+                                <span class="step-num">3</span>
+                                <span class="step-text">Calculate local duty & tax impact</span>
+                            </div>
+                        </div>
+
+                        <form action="{{ url_for('predict_price') }}" method="POST" class="predict-form-clean">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                Run Prediction Model
+                            </button>
+                            <p class="form-disclaimer">
+                                Prediction will generate a detailed report including next-day forecasts,
+                                expected volatility, and GST-inclusive pricing.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="api-docs-clean">
+                    <h3>Developer API Access</h3>
+                    <div class="api-endpoint">
+                        <span class="method">GET</span>
+                        <code class="url">/api/predict</code>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer-clean">
+            <div class="container footer-content">
+                <p>&copy; 2026 SilverPredictor. Educational Purpose Only.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+
+</html>
