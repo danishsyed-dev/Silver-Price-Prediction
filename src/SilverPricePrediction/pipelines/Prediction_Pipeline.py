@@ -283,11 +283,12 @@ class SilverDataFetcher:
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
         self.fallback_data_path = os.path.join("Artifacts", "raw_data.csv")
-        # Prioritize XAGUSD=X (spot price) over SI=F (futures can be unreliable)
+        # Prioritize spot price but also accept futures
         self.alt_symbols = ["XAGUSD=X", "SI=F", "SLV"]
         # Reasonable price range for silver (USD per troy ounce)
-        self.min_reasonable_price = 20.0  # Silver rarely below $20
-        self.max_reasonable_price = 60.0  # Silver rarely above $60
+        # Note: Futures (SI=F) trade higher than spot, so we use a wider range
+        self.min_reasonable_price = 25.0   # Silver rarely below $25
+        self.max_reasonable_price = 150.0  # Futures can be higher than spot
     
     def _is_price_reasonable(self, price):
         """Check if price is within reasonable range for silver."""
