@@ -3,7 +3,7 @@
 # Core ML Libraries
 pandas>=1.5.0
 numpy>=1.21.0
-scikit-learn>=1.0.0
+scikit-learn==1.7.0  # Pinned to match model training version
 
 # Data Visualization
 seaborn>=0.12.0
