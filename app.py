@@ -217,11 +217,16 @@ def api_predict():
 def api_current_price():
     """Get current silver price in INR."""
     try:
+        print("DEBUG: Starting api_current_price")
         fetcher = SilverDataFetcher()
+        print("DEBUG: Fetcher created, getting price...")
         current_price_usd = fetcher.get_current_price()
+        print(f"DEBUG: Got price: {current_price_usd}")
         
         if current_price_usd:
+            print("DEBUG: Converting to Indian market...")
             indian_prices = indian_converter.convert_to_indian_market(current_price_usd)
+            print(f"DEBUG: Conversion done: {indian_prices}")
             
             return jsonify({
                 'success': True,
@@ -243,12 +248,16 @@ def api_current_price():
                 'timestamp': datetime.now().isoformat()
             })
         else:
+            print("DEBUG: current_price_usd is None/False")
             return jsonify({
                 'success': False,
-                'error': 'Could not fetch price'
+                'error': 'Could not fetch price from Yahoo Finance'
             }), 500
         
     except Exception as e:
+        import traceback
+        print(f"DEBUG ERROR: {str(e)}")
+        print(f"DEBUG TRACEBACK: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': str(e)
