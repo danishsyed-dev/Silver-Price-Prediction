@@ -277,18 +277,22 @@ class SilverDataFetcher:
     Fetch latest silver price data for making predictions.
     Uses multiple methods to ensure data availability on cloud platforms.
     
-    Note: Silver spot price is typically $25-40/oz. If we get values outside
-    reasonable range, we skip that source.
+    Data sources (in priority order):
+    1. Metals-API.com (if API key is configured)
+    2. Yahoo Finance (XAGUSD=X, SI=F, SLV)
+    3. Local fallback CSV
     """
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
         self.fallback_data_path = os.path.join("Artifacts", "raw_data.csv")
-        # Prioritize spot price but also accept futures
+        # Yahoo Finance symbols as backup
         self.alt_symbols = ["XAGUSD=X", "SI=F", "SLV"]
         # Reasonable price range for silver (USD per troy ounce)
-        # Note: Futures (SI=F) trade higher than spot, so we use a wider range
-        self.min_reasonable_price = 25.0   # Silver rarely below $25
-        self.max_reasonable_price = 150.0  # Futures can be higher than spot
+        self.min_reasonable_price = 25.0
+        self.max_reasonable_price = 150.0
+        # MetalpriceAPI configuration (https://metalpriceapi.com)
+        self.metals_api_key = os.environ.get("METALPRICEAPI_KEY")
+        self.metals_api_base = "https://api.metalpriceapi.com/v1"
     
     def _is_price_reasonable(self, price):
         """Check if price is within reasonable range for silver."""
@@ -296,8 +300,52 @@ class SilverDataFetcher:
             return False
         return self.min_reasonable_price <= price <= self.max_reasonable_price
     
+    def _fetch_from_metals_api(self):
+        """Fetch silver price from MetalpriceAPI.com (primary source)."""
+        if not self.metals_api_key:
+            logging.info("MetalpriceAPI key not configured, skipping...")
+            return None
+        
+        try:
+            import requests
+            
+            # Get latest silver price in USD
+            # XAG is the symbol for silver
+            url = f"{self.metals_api_base}/latest"
+            params = {
+                "api_key": self.metals_api_key,
+                "base": "USD",
+                "currencies": "XAG"
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            if data.get("success"):
+                # MetalpriceAPI returns: 1 USD = X oz of silver
+                # So XAG rate is like 0.036 (meaning 1 USD = 0.036 oz)
+                # To get price per oz: 1 / 0.036 = ~$27.78
+                xag_rate = data.get("rates", {}).get("XAG")
+                if xag_rate and xag_rate > 0:
+                    price_per_oz = 1 / xag_rate
+                    logging.info(f"✓ MetalpriceAPI silver: ${price_per_oz:.2f}/oz")
+                    return price_per_oz
+                # Also check for USDXAG which gives direct price
+                usd_xag = data.get("rates", {}).get("USDXAG")
+                if usd_xag and usd_xag > 0:
+                    logging.info(f"✓ MetalpriceAPI silver (USDXAG): ${usd_xag:.2f}/oz")
+                    return usd_xag
+            else:
+                error_msg = data.get("error", {}).get("info", "Unknown error")
+                logging.warning(f"MetalpriceAPI error: {error_msg}")
+            
+        except Exception as e:
+            logging.warning(f"MetalpriceAPI failed: {e}")
+        
+        return None
+    
     def _fetch_with_yfinance(self, symbol, period="1d"):
-        """Try fetching with yfinance."""
+        """Try fetching with yfinance (backup source)."""
         try:
             import yfinance as yf
             ticker = yf.Ticker(symbol)
@@ -386,12 +434,20 @@ class SilverDataFetcher:
     def get_current_price(self):
         """
         Get the current silver price.
-        Tries multiple methods to ensure availability.
-        Only accepts prices in reasonable range ($20-60/oz).
+        
+        Priority:
+        1. Metals-API.com (if configured)
+        2. Yahoo Finance (multiple symbols)
+        3. Local fallback CSV
         """
-        # Try multiple symbols
+        # Priority 1: Try Metals API first (most reliable)
+        metals_price = self._fetch_from_metals_api()
+        if metals_price and self._is_price_reasonable(metals_price):
+            return metals_price
+        
+        # Priority 2: Try Yahoo Finance symbols
         for symbol in self.alt_symbols:
-            logging.info(f"Trying to get current price with symbol: {symbol}")
+            logging.info(f"Trying Yahoo Finance: {symbol}")
             
             # Method 1: yfinance Ticker
             data = self._fetch_with_yfinance(symbol, period="5d")
@@ -401,7 +457,7 @@ class SilverDataFetcher:
                     logging.info(f"✓ Valid price from {symbol}: ${price:.2f}/oz")
                     return price
                 else:
-                    logging.warning(f"✗ Unreasonable price from {symbol}: ${price:.2f} (expected $20-60), skipping...")
+                    logging.warning(f"✗ Unreasonable price from {symbol}: ${price:.2f}, skipping...")
                     continue
             
             # Method 2: yfinance download
@@ -412,19 +468,17 @@ class SilverDataFetcher:
                     logging.info(f"✓ Valid price from {symbol} (download): ${price:.2f}/oz")
                     return price
                 else:
-                    logging.warning(f"✗ Unreasonable price from {symbol}: ${price:.2f} (expected $20-60), skipping...")
+                    logging.warning(f"✗ Unreasonable price from {symbol}: ${price:.2f}, skipping...")
                     continue
         
-        # Final fallback - use local data (with warning)
-        logging.error("WARNING: Using fallback price - all live sources failed or returned bad data!")
+        # Priority 3: Local fallback CSV
+        logging.error("WARNING: Using fallback price - all live sources failed!")
         fallback = self._get_fallback_data()
         if fallback is not None and 'Close' in fallback.columns:
             price = float(fallback['Close'].iloc[-1])
             if self._is_price_reasonable(price):
                 logging.warning(f"Fallback price: ${price:.2f}")
                 return price
-            else:
-                logging.error(f"Even fallback has bad price: ${price:.2f}")
         
         return None
 
