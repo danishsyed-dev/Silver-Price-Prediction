@@ -165,3 +165,4 @@ diamondenv/
 # Silver Price Prediction specific
 # Artifacts/ - REMOVED: Model files needed for deployment
 logs/
+PROJECT_DOCUMENTATION.md
