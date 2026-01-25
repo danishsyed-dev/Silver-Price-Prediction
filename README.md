@@ -1,48 +1,83 @@
 # 🪙 Silver Price Prediction - India 🇮🇳
 
-An end-to-end machine learning project to predict silver prices for the **Indian market** with:
-- **Prices in INR (₹)**
-- **GST calculations (3%)**
-- **Per gram, per 10g, and per kg pricing**
+An end-to-end machine learning project to predict silver prices for the **Indian market**.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7?style=for-the-badge&logo=render)](https://silver-price-prediction-ghx8.onrender.com)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.0%2B-green.svg)](https://flask.palletsprojects.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## 🌐 Live Demo
+
+**🚀 Try it now:** [https://silver-price-prediction-ghx8.onrender.com](https://silver-price-prediction-ghx8.onrender.com)
+
+---
+
 ## 📊 Features
 
-✅ **Indian Market Prices** - All prices in INR  
-✅ **GST Included** - 3% GST as per Indian tax law  
-✅ **Multiple Units** - Per gram, per 10 grams, per kg  
-✅ **Live Exchange Rate** - Real-time USD/INR conversion  
-✅ **ML Predictions** - Next day price forecast  
-✅ **Web Interface** - Beautiful, responsive design  
-✅ **REST API** - JSON endpoints for integration  
+| Feature | Description |
+|---------|-------------|
+| ✅ **Live Prices** | Real-time silver prices from MetalpriceAPI |
+| ✅ **Indian Market** | Prices in INR (₹) with import duties |
+| ✅ **GST Included** | 3% GST as per Indian tax law |
+| ✅ **Multiple Units** | Per gram, per 10 grams, per kg |
+| ✅ **ML Predictions** | Next-day price forecast |
+| ✅ **Responsive Design** | Beautiful web interface |
+| ✅ **REST API** | JSON endpoints for integration |
+| ✅ **24-Hour Caching** | Efficient API usage |
 
-## 💰 GST Information
+---
 
-Silver in India attracts **3% GST** under the Goods and Services Tax Act.
+## 💰 Current Pricing (Example)
 
-| Price Type | Description |
-|------------|-------------|
-| Without GST | Base metal price |
-| With GST | Final consumer price (3% added) |
+| Unit | Price (incl. GST) |
+|------|-------------------|
+| 1 Gram | ~₹365 |
+| 10 Grams | ~₹3,650 |
+| 1 Kilogram | ~₹3,65,000 |
+
+*Prices match GoodReturns.in (Hyderabad rates)*
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  MetalpriceAPI  │────▶│   Flask App      │────▶│   ML Model      │
+│  (Live Prices)  │     │   (Conversion)   │     │   (Prediction)  │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+         │                       │                        │
+         ▼                       ▼                        ▼
+   USD/oz prices         INR conversion          Next-day forecast
+                         + GST (3%)
+```
+
+---
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/danishsyed-dev/Silver-Price-Prediction.git
+cd Silver-Price-Prediction
+```
+
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Train the Model
+### 3. Set Environment Variables (Optional)
 
 ```bash
-python src/SilverPricePrediction/pipelines/Training_pipeline.py
+# For MetalpriceAPI (optional - falls back to Yahoo Finance)
+export METALPRICEAPI_KEY=your_api_key_here
 ```
 
-### 3. Run the Web App
+### 4. Run the Web App
 
 ```bash
 python app.py
@@ -50,39 +85,34 @@ python app.py
 
 Open: **http://localhost:8080**
 
+---
+
+## 🌐 Deployment (Render.com)
+
+### Environment Variables Required
+
+| Variable | Description |
+|----------|-------------|
+| `METALPRICEAPI_KEY` | API key from metalpriceapi.com |
+
+### Build Command
+```
+pip install -r requirements.txt
+```
+
+### Start Command
+```
+gunicorn app:app
+```
+
+---
+
 ## 📡 API Endpoints
 
-### Get Prediction (Indian Market)
+### Get Prediction
 
 ```http
 GET /api/predict
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "market": "India",
-    "currency": "INR",
-    "exchange_rate": 83.45,
-    "inr_without_gst": {
-        "current_per_10g": 7650,
-        "predicted_per_10g": 7720,
-        "current_per_kg": 765000,
-        "predicted_per_kg": 772000
-    },
-    "inr_with_gst": {
-        "current_per_10g": 7880,
-        "predicted_per_10g": 7952,
-        "current_per_kg": 788000,
-        "predicted_per_kg": 795160
-    },
-    "gst": {
-        "rate_percent": 3,
-        "per_10g": 230,
-        "per_kg": 23000
-    }
-}
 ```
 
 ### Get Current Price
@@ -91,65 +121,87 @@ GET /api/predict
 GET /api/current-price
 ```
 
-**Response:**
+### Sample Response
+
 ```json
 {
     "success": true,
     "market": "India",
-    "without_gst": {
-        "per_gram": 765,
-        "per_10_grams": 7650,
-        "per_kg": 765000
-    },
+    "currency": "INR",
     "with_gst": {
-        "per_gram": 788,
-        "per_10_grams": 7880,
-        "per_kg": 788000
+        "per_10_grams": 3650,
+        "per_kg": 365000
     },
     "gst_rate": "3%"
 }
 ```
 
+---
+
 ## 📁 Project Structure
 
 ```
-Silver-Price-Prediction-India/
+Silver-Price-Prediction/
+├── app.py                          # Flask web application
+├── requirements.txt                # Python dependencies
+├── Artifacts/                      # ML model files
+│   ├── model.pkl                   # Trained model (Lasso)
+│   ├── preprocessor.pkl            # Data preprocessor
+│   └── raw_data.csv                # Historical data
 ├── src/SilverPricePrediction/
-│   ├── components/
-│   │   ├── Data_ingestion.py       # Fetch silver data
-│   │   ├── Data_transformation.py  # Feature engineering
-│   │   ├── Model_trainer.py        # Train models
-│   │   └── Model_evaluation.py     # Evaluate performance
 │   ├── pipelines/
-│   │   ├── Training_pipeline.py    # Training workflow
-│   │   └── Prediction_Pipeline.py  # Prediction + INR conversion
-│   └── utils/utils.py
-├── Artifacts_Silver/               # Trained models
-├── templates_silver/               # HTML templates
-├── static_silver/                  # CSS files
-├── app_silver.py                   # Flask app
-└── requirements_silver.txt
+│   │   └── Prediction_Pipeline.py  # Core prediction logic
+│   └── components/                 # ML components
+├── templates/                      # HTML templates
+│   ├── index.html                  # Homepage
+│   ├── form.html                   # Prediction form
+│   ├── result.html                 # Results page
+│   └── about.html                  # Methodology
+├── static/
+│   ├── style.css                   # Styling
+│   └── favicon.png                 # Browser tab icon
+└── render.yaml                     # Render deployment config
 ```
+
+---
 
 ## 🔄 Price Conversion Logic
 
 ```
-1. Fetch USD price per troy ounce
-2. Get live USD/INR exchange rate  
-3. Convert to INR per ounce
-4. Convert to INR per gram (1 oz = 31.1035g)
-5. Calculate per 10g and per kg prices
-6. Add 3% GST for final prices
+Step 1: Fetch USD price per troy ounce (MetalpriceAPI)
+Step 2: Get live USD/INR exchange rate
+Step 3: Convert to INR per gram (÷ 31.1035)
+Step 4: Add Import Duty (+6%)
+Step 5: Add Local Premium (+10%)
+Step 6: Add GST (+3%)
 ```
 
-## 🤖 ML Models Used
+---
 
-| Model | R² Score |
-|-------|----------|
-| Lasso | 0.9836 ✅ Best |
-| Linear Regression | 0.9808 |
-| Ridge | 0.9783 |
-| ElasticNet | 0.9700 |
+## 🤖 ML Model
+
+| Metric | Value |
+|--------|-------|
+| **Algorithm** | Lasso Regression |
+| **R² Score** | 0.9836 |
+| **Library** | scikit-learn 1.7.0 |
+
+### Features Used
+- Historical closing prices (1, 2, 3, 5, 7 days)
+- Moving averages (5, 10, 20 days)
+- Technical indicators (RSI, MACD, Bollinger Bands)
+
+---
+
+## 💾 Data Sources
+
+| Priority | Source | Description |
+|----------|--------|-------------|
+| 1 | MetalpriceAPI | Primary (24-hour cache) |
+| 2 | Yahoo Finance | Backup (XAGUSD=X, SI=F) |
+| 3 | Local CSV | Fallback |
+
+---
 
 ## ⚠️ Disclaimer
 
@@ -163,9 +215,23 @@ Actual silver prices at jewellers may include:
 
 **Do not use for actual trading decisions.**
 
+---
+
+## 📝 Recent Updates
+
+- ✅ Deployed to Render.com
+- ✅ Integrated MetalpriceAPI for accurate Indian prices
+- ✅ Added 24-hour price caching
+- ✅ Added silver favicon (Ag)
+- ✅ Fixed scikit-learn compatibility (v1.7.0)
+
+---
+
 ## 📧 Contact
 
-Created with ❤️ for the Indian market
+Created by **Danish Syed** 
+
+GitHub: [@danishsyed-dev](https://github.com/danishsyed-dev)
 
 ---
 
