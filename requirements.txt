@@ -22,5 +22,4 @@ lightgbm>=3.3.0
 # Jupyter Support
 ipykernel>=6.0.0
 
-# Development
--e .
+# Note: -e . removed for Vercel compatibility
