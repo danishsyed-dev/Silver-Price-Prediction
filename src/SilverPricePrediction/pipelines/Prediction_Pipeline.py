@@ -302,10 +302,12 @@ class SilverDataFetcher:
     
     def _fetch_from_metals_api(self):
         """Fetch silver price from MetalpriceAPI.com (primary source)."""
+        print(f"METALS_API: Checking for API key...")
         if not self.metals_api_key:
-            logging.info("MetalpriceAPI key not configured, skipping...")
+            print("METALS_API: Key not configured, skipping...")
             return None
         
+        print(f"METALS_API: Key found, fetching price...")
         try:
             import requests
             
@@ -320,6 +322,7 @@ class SilverDataFetcher:
             
             response = requests.get(url, params=params, timeout=10)
             data = response.json()
+            print(f"METALS_API: Response received - success={data.get('success')}")
             
             if data.get("success"):
                 # MetalpriceAPI returns: 1 USD = X oz of silver
@@ -328,19 +331,19 @@ class SilverDataFetcher:
                 xag_rate = data.get("rates", {}).get("XAG")
                 if xag_rate and xag_rate > 0:
                     price_per_oz = 1 / xag_rate
-                    logging.info(f"✓ MetalpriceAPI silver: ${price_per_oz:.2f}/oz")
+                    print(f"METALS_API: ✓ Silver price: ${price_per_oz:.2f}/oz")
                     return price_per_oz
                 # Also check for USDXAG which gives direct price
                 usd_xag = data.get("rates", {}).get("USDXAG")
                 if usd_xag and usd_xag > 0:
-                    logging.info(f"✓ MetalpriceAPI silver (USDXAG): ${usd_xag:.2f}/oz")
+                    print(f"METALS_API: ✓ Silver price (USDXAG): ${usd_xag:.2f}/oz")
                     return usd_xag
             else:
                 error_msg = data.get("error", {}).get("info", "Unknown error")
-                logging.warning(f"MetalpriceAPI error: {error_msg}")
+                print(f"METALS_API: Error - {error_msg}")
             
         except Exception as e:
-            logging.warning(f"MetalpriceAPI failed: {e}")
+            print(f"METALS_API: Failed - {e}")
         
         return None
     
