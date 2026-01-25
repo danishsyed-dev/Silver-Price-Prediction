@@ -275,13 +275,30 @@ class PredictPipeline:
 class SilverDataFetcher:
     """
     Fetch latest silver price data for making predictions.
+    Includes fallback to local data when Yahoo Finance is unavailable.
     """
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
+        self.fallback_data_path = os.path.join("Artifacts", "raw_data.csv")
+    
+    def _get_fallback_data(self):
+        """Load fallback data from local CSV file."""
+        try:
+            if os.path.exists(self.fallback_data_path):
+                data = pd.read_csv(self.fallback_data_path)
+                logging.info(f"Loaded fallback data: {len(data)} rows")
+                return data
+            else:
+                logging.warning(f"Fallback data not found at {self.fallback_data_path}")
+                return None
+        except Exception as e:
+            logging.error(f"Error loading fallback data: {e}")
+            return None
     
     def fetch_latest_data(self, days=100):
         """
         Fetch recent silver price data.
+        Falls back to local CSV if Yahoo Finance fails.
         
         Args:
             days: Number of historical days to fetch (need ~50+ for features)
@@ -296,22 +313,32 @@ class SilverDataFetcher:
             data = ticker.history(period=f"{days}d")
             
             if data.empty:
+                logging.warning("Yahoo Finance returned empty data, using fallback")
+                fallback = self._get_fallback_data()
+                if fallback is not None:
+                    return fallback.tail(days)
                 raise ValueError(f"No data available for {self.symbol}")
             
             data = data.reset_index()
             data.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits']
             data = data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
             
-            logging.info(f"Fetched {len(data)} days of data")
+            logging.info(f"Fetched {len(data)} days of live data")
             
             return data
             
         except Exception as e:
-            logging.error(f"Error fetching data: {e}")
+            logging.warning(f"Error fetching live data: {e}, trying fallback")
+            fallback = self._get_fallback_data()
+            if fallback is not None:
+                return fallback.tail(days)
             raise customexception(e, sys)
     
     def get_current_price(self):
-        """Get the current silver price."""
+        """
+        Get the current silver price.
+        Falls back to last price in local data if Yahoo Finance fails.
+        """
         try:
             import yfinance as yf
             
@@ -319,11 +346,26 @@ class SilverDataFetcher:
             data = ticker.history(period="1d")
             
             if not data.empty:
-                return data['Close'].iloc[-1]
+                price = data['Close'].iloc[-1]
+                logging.info(f"Live price fetched: ${price:.2f}")
+                return price
+            
+            # Fallback to local data
+            logging.warning("Live price unavailable, using fallback data")
+            fallback = self._get_fallback_data()
+            if fallback is not None and 'Close' in fallback.columns:
+                price = fallback['Close'].iloc[-1]
+                logging.info(f"Fallback price: ${price:.2f}")
+                return price
+            
             return None
             
         except Exception as e:
             logging.error(f"Error getting current price: {e}")
+            # Try fallback
+            fallback = self._get_fallback_data()
+            if fallback is not None and 'Close' in fallback.columns:
+                return fallback['Close'].iloc[-1]
             return None
 
 
