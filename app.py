@@ -34,15 +34,24 @@ indian_converter = IndianMarketConverter()
 @app.route("/")
 def home():
     """Render the home page."""
+    indian_prices = None
     try:
+        print("HOME: Creating SilverDataFetcher...")
         fetcher = SilverDataFetcher()
+        print("HOME: Calling get_current_price()...")
         current_price_usd = fetcher.get_current_price()
+        print(f"HOME: Got price: {current_price_usd}")
         
         if current_price_usd:
+            print("HOME: Converting to Indian market...")
             indian_prices = indian_converter.convert_to_indian_market(current_price_usd)
+            print(f"HOME: Conversion successful - ₹{indian_prices.get('inr_per_10_grams_with_gst', 'N/A')}/10g")
         else:
-            indian_prices = None
-    except:
+            print("HOME: current_price_usd is None")
+    except Exception as e:
+        import traceback
+        print(f"HOME ERROR: {str(e)}")
+        print(f"HOME TRACEBACK: {traceback.format_exc()}")
         indian_prices = None
     
     return render_template("index.html", indian_prices=indian_prices)
