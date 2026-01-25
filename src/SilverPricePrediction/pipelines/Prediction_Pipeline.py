@@ -275,11 +275,36 @@ class PredictPipeline:
 class SilverDataFetcher:
     """
     Fetch latest silver price data for making predictions.
-    Includes fallback to local data when Yahoo Finance is unavailable.
+    Uses multiple methods to ensure data availability on cloud platforms.
     """
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
         self.fallback_data_path = os.path.join("Artifacts", "raw_data.csv")
+        # Alternative symbols to try
+        self.alt_symbols = ["SI=F", "SIL", "XAGUSD=X"]
+    
+    def _fetch_with_yfinance(self, symbol, period="1d"):
+        """Try fetching with yfinance."""
+        try:
+            import yfinance as yf
+            ticker = yf.Ticker(symbol)
+            data = ticker.history(period=period)
+            if not data.empty:
+                return data
+        except Exception as e:
+            logging.warning(f"yfinance failed for {symbol}: {e}")
+        return None
+    
+    def _fetch_with_download(self, symbol, period="1d"):
+        """Try fetching with yfinance download method."""
+        try:
+            import yfinance as yf
+            data = yf.download(symbol, period=period, progress=False)
+            if not data.empty:
+                return data
+        except Exception as e:
+            logging.warning(f"yfinance download failed for {symbol}: {e}")
+        return None
     
     def _get_fallback_data(self):
         """Load fallback data from local CSV file."""
@@ -298,7 +323,7 @@ class SilverDataFetcher:
     def fetch_latest_data(self, days=100):
         """
         Fetch recent silver price data.
-        Falls back to local CSV if Yahoo Finance fails.
+        Tries multiple methods and symbols.
         
         Args:
             days: Number of historical days to fetch (need ~50+ for features)
@@ -306,67 +331,73 @@ class SilverDataFetcher:
         Returns:
             DataFrame with OHLCV data
         """
-        try:
-            import yfinance as yf
+        # Try multiple symbols with yfinance
+        for symbol in self.alt_symbols:
+            logging.info(f"Trying to fetch data with symbol: {symbol}")
             
-            ticker = yf.Ticker(self.symbol)
-            data = ticker.history(period=f"{days}d")
+            # Method 1: yfinance Ticker
+            data = self._fetch_with_yfinance(symbol, period=f"{days}d")
+            if data is not None and not data.empty:
+                data = data.reset_index()
+                # Handle different column structures
+                if 'Datetime' in data.columns:
+                    data = data.rename(columns={'Datetime': 'Date'})
+                cols = [c for c in ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'] if c in data.columns]
+                data = data[cols]
+                logging.info(f"Successfully fetched {len(data)} days with {symbol} (Ticker method)")
+                return data
             
-            if data.empty:
-                logging.warning("Yahoo Finance returned empty data, using fallback")
-                fallback = self._get_fallback_data()
-                if fallback is not None:
-                    return fallback.tail(days)
-                raise ValueError(f"No data available for {self.symbol}")
-            
-            data = data.reset_index()
-            data.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits']
-            data = data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
-            
-            logging.info(f"Fetched {len(data)} days of live data")
-            
-            return data
-            
-        except Exception as e:
-            logging.warning(f"Error fetching live data: {e}, trying fallback")
-            fallback = self._get_fallback_data()
-            if fallback is not None:
-                return fallback.tail(days)
-            raise customexception(e, sys)
+            # Method 2: yfinance download
+            data = self._fetch_with_download(symbol, period=f"{days}d")
+            if data is not None and not data.empty:
+                data = data.reset_index()
+                if 'Datetime' in data.columns:
+                    data = data.rename(columns={'Datetime': 'Date'})
+                cols = [c for c in ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'] if c in data.columns]
+                data = data[cols]
+                logging.info(f"Successfully fetched {len(data)} days with {symbol} (download method)")
+                return data
+        
+        # Fallback to local data
+        logging.warning("All live data sources failed, using fallback CSV")
+        fallback = self._get_fallback_data()
+        if fallback is not None:
+            return fallback.tail(days)
+        
+        raise ValueError("Could not fetch data from any source")
     
     def get_current_price(self):
         """
         Get the current silver price.
-        Falls back to last price in local data if Yahoo Finance fails.
+        Tries multiple methods to ensure availability.
         """
-        try:
-            import yfinance as yf
+        # Try multiple symbols
+        for symbol in self.alt_symbols:
+            logging.info(f"Trying to get current price with symbol: {symbol}")
             
-            ticker = yf.Ticker(self.symbol)
-            data = ticker.history(period="1d")
-            
-            if not data.empty:
+            # Method 1: yfinance Ticker
+            data = self._fetch_with_yfinance(symbol, period="5d")
+            if data is not None and not data.empty:
                 price = data['Close'].iloc[-1]
-                logging.info(f"Live price fetched: ${price:.2f}")
-                return price
+                logging.info(f"Live price from {symbol}: ${price:.2f}")
+                return float(price)
             
-            # Fallback to local data
-            logging.warning("Live price unavailable, using fallback data")
-            fallback = self._get_fallback_data()
-            if fallback is not None and 'Close' in fallback.columns:
-                price = fallback['Close'].iloc[-1]
-                logging.info(f"Fallback price: ${price:.2f}")
-                return price
-            
-            return None
-            
-        except Exception as e:
-            logging.error(f"Error getting current price: {e}")
-            # Try fallback
-            fallback = self._get_fallback_data()
-            if fallback is not None and 'Close' in fallback.columns:
-                return fallback['Close'].iloc[-1]
-            return None
+            # Method 2: yfinance download
+            data = self._fetch_with_download(symbol, period="5d")
+            if data is not None and not data.empty:
+                price = data['Close'].iloc[-1]
+                logging.info(f"Live price from {symbol} (download): ${price:.2f}")
+                return float(price)
+        
+        # Final fallback - use local data (with warning)
+        logging.error("WARNING: Using fallback price - all live sources failed!")
+        fallback = self._get_fallback_data()
+        if fallback is not None and 'Close' in fallback.columns:
+            price = fallback['Close'].iloc[-1]
+            logging.warning(f"Fallback price (may be outdated): ${price:.2f}")
+            return float(price)
+        
+        return None
 
 
 class CustomData:
