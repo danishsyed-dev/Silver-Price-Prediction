@@ -163,5 +163,5 @@ diamondenv/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 # Silver Price Prediction specific
-Artifacts/
+# Artifacts/ - REMOVED: Model files needed for deployment
 logs/
