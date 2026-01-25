@@ -278,10 +278,15 @@ class SilverDataFetcher:
     Uses multiple methods to ensure data availability on cloud platforms.
     
     Data sources (in priority order):
-    1. Metals-API.com (if API key is configured)
+    1. Metals-API.com (if API key is configured) - with 15-min cache
     2. Yahoo Finance (XAGUSD=X, SI=F, SLV)
     3. Local fallback CSV
     """
+    # Class-level cache (shared across all instances)
+    _cached_price = None
+    _cache_timestamp = None
+    _cache_ttl = 86400  # 24 hours in seconds (saves API calls - only ~30/month)
+    
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
         self.fallback_data_path = os.path.join("Artifacts", "raw_data.csv")
@@ -293,6 +298,21 @@ class SilverDataFetcher:
         # MetalpriceAPI configuration (https://metalpriceapi.com)
         self.metals_api_key = os.environ.get("METALPRICEAPI_KEY")
         self.metals_api_base = "https://api.metalpriceapi.com/v1"
+    
+    def _get_cached_price(self):
+        """Return cached price if still valid."""
+        if SilverDataFetcher._cached_price and SilverDataFetcher._cache_timestamp:
+            age = (datetime.now() - SilverDataFetcher._cache_timestamp).total_seconds()
+            if age < SilverDataFetcher._cache_ttl:
+                print(f"CACHE: Using cached price (age: {int(age)}s)")
+                return SilverDataFetcher._cached_price
+        return None
+    
+    def _set_cached_price(self, price):
+        """Cache the price."""
+        SilverDataFetcher._cached_price = price
+        SilverDataFetcher._cache_timestamp = datetime.now()
+        print(f"CACHE: Price cached for 24 hours")
     
     def _is_price_reasonable(self, price):
         """Check if price is within reasonable range for silver."""
@@ -439,13 +459,20 @@ class SilverDataFetcher:
         Get the current silver price.
         
         Priority:
+        0. Cached price (if available and fresh)
         1. Metals-API.com (if configured)
         2. Yahoo Finance (multiple symbols)
         3. Local fallback CSV
         """
+        # Priority 0: Check cache first (saves API calls!)
+        cached = self._get_cached_price()
+        if cached:
+            return cached
+        
         # Priority 1: Try Metals API first (most reliable)
         metals_price = self._fetch_from_metals_api()
         if metals_price and self._is_price_reasonable(metals_price):
+            self._set_cached_price(metals_price)  # Cache the result
             return metals_price
         
         # Priority 2: Try Yahoo Finance symbols
