@@ -276,12 +276,24 @@ class SilverDataFetcher:
     """
     Fetch latest silver price data for making predictions.
     Uses multiple methods to ensure data availability on cloud platforms.
+    
+    Note: Silver spot price is typically $25-40/oz. If we get values outside
+    reasonable range, we skip that source.
     """
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
         self.fallback_data_path = os.path.join("Artifacts", "raw_data.csv")
-        # Alternative symbols to try
-        self.alt_symbols = ["SI=F", "SIL", "XAGUSD=X"]
+        # Prioritize XAGUSD=X (spot price) over SI=F (futures can be unreliable)
+        self.alt_symbols = ["XAGUSD=X", "SI=F", "SLV"]
+        # Reasonable price range for silver (USD per troy ounce)
+        self.min_reasonable_price = 20.0  # Silver rarely below $20
+        self.max_reasonable_price = 60.0  # Silver rarely above $60
+    
+    def _is_price_reasonable(self, price):
+        """Check if price is within reasonable range for silver."""
+        if price is None:
+            return False
+        return self.min_reasonable_price <= price <= self.max_reasonable_price
     
     def _fetch_with_yfinance(self, symbol, period="1d"):
         """Try fetching with yfinance."""
@@ -290,6 +302,8 @@ class SilverDataFetcher:
             ticker = yf.Ticker(symbol)
             data = ticker.history(period=period)
             if not data.empty:
+                price = data['Close'].iloc[-1]
+                logging.info(f"Fetched {symbol}: ${price:.2f}/oz")
                 return data
         except Exception as e:
             logging.warning(f"yfinance failed for {symbol}: {e}")
@@ -301,6 +315,8 @@ class SilverDataFetcher:
             import yfinance as yf
             data = yf.download(symbol, period=period, progress=False)
             if not data.empty:
+                price = data['Close'].iloc[-1]
+                logging.info(f"Downloaded {symbol}: ${price:.2f}/oz")
                 return data
         except Exception as e:
             logging.warning(f"yfinance download failed for {symbol}: {e}")
@@ -370,6 +386,7 @@ class SilverDataFetcher:
         """
         Get the current silver price.
         Tries multiple methods to ensure availability.
+        Only accepts prices in reasonable range ($20-60/oz).
         """
         # Try multiple symbols
         for symbol in self.alt_symbols:
@@ -378,24 +395,35 @@ class SilverDataFetcher:
             # Method 1: yfinance Ticker
             data = self._fetch_with_yfinance(symbol, period="5d")
             if data is not None and not data.empty:
-                price = data['Close'].iloc[-1]
-                logging.info(f"Live price from {symbol}: ${price:.2f}")
-                return float(price)
+                price = float(data['Close'].iloc[-1])
+                if self._is_price_reasonable(price):
+                    logging.info(f"✓ Valid price from {symbol}: ${price:.2f}/oz")
+                    return price
+                else:
+                    logging.warning(f"✗ Unreasonable price from {symbol}: ${price:.2f} (expected $20-60), skipping...")
+                    continue
             
             # Method 2: yfinance download
             data = self._fetch_with_download(symbol, period="5d")
             if data is not None and not data.empty:
-                price = data['Close'].iloc[-1]
-                logging.info(f"Live price from {symbol} (download): ${price:.2f}")
-                return float(price)
+                price = float(data['Close'].iloc[-1])
+                if self._is_price_reasonable(price):
+                    logging.info(f"✓ Valid price from {symbol} (download): ${price:.2f}/oz")
+                    return price
+                else:
+                    logging.warning(f"✗ Unreasonable price from {symbol}: ${price:.2f} (expected $20-60), skipping...")
+                    continue
         
         # Final fallback - use local data (with warning)
-        logging.error("WARNING: Using fallback price - all live sources failed!")
+        logging.error("WARNING: Using fallback price - all live sources failed or returned bad data!")
         fallback = self._get_fallback_data()
         if fallback is not None and 'Close' in fallback.columns:
-            price = fallback['Close'].iloc[-1]
-            logging.warning(f"Fallback price (may be outdated): ${price:.2f}")
-            return float(price)
+            price = float(fallback['Close'].iloc[-1])
+            if self._is_price_reasonable(price):
+                logging.warning(f"Fallback price: ${price:.2f}")
+                return price
+            else:
+                logging.error(f"Even fallback has bad price: ${price:.2f}")
         
         return None
 
