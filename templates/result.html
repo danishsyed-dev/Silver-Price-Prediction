@@ -39,7 +39,7 @@
                         <h1>Tomorrow's Forecast</h1>
                     </div>
                     <div class="result-meta">
-                        <p>Generated: {{ prediction_time }}</p>
+                        <p>Generated: {{ result.timestamp }}</p>
                         <p>Market: India (INR)</p>
                     </div>
                 </div>
@@ -49,18 +49,27 @@
                     <div>
                         <div class="result-price-label">Predicted Price (10g with GST)</div>
                         <div class="result-price-value text-yellow">
-                            ₹{{ "{:,.0f}".format(predicted_inr_10g_gst) }}
+                            ₹{{ "{:,.0f}".format(result.predicted_inr_per_10g_gst) }}
                         </div>
                     </div>
                     <div class="result-price-change">
-                        <div class="price-change {% if price_direction == 'up' %}{% else %}down{% endif %}">
-                            {% if price_direction == 'up' %}
-                            📈 +₹{{ "{:,.0f}".format(price_diff_10g) }}
+                        <div class="price-change {% if result.direction == 'up' %}{% else %}down{% endif %}">
+                            {% if result.direction == 'up' %}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M18 15l-6-6-6 6" />
+                            </svg>
+                            +₹{{ "{:,.0f}".format(result.price_change_inr_10g_gst) }}
                             {% else %}
-                            📉 -₹{{ "{:,.0f}".format(price_diff_10g|abs) }}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                            ₹{{ "{:,.0f}".format(result.price_change_inr_10g_gst) }}
                             {% endif %}
                         </div>
-                        <span class="text-muted" style="font-size: 13px;">vs. current price</span>
+                        <span class="text-muted" style="font-size: 13px;">vs. current price ({{ result.pct_change
+                            }}%)</span>
                     </div>
                 </div>
 
@@ -80,28 +89,28 @@
                             <tbody>
                                 <tr>
                                     <td>Per Gram</td>
-                                    <td>₹{{ current_inr_gram }}</td>
-                                    <td class="highlight">₹{{ predicted_inr_gram }}</td>
+                                    <td>₹{{ "{:,.0f}".format(result.current_inr_per_1g) }}</td>
+                                    <td class="highlight">₹{{ "{:,.0f}".format(result.predicted_inr_per_1g) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Per 10 Grams</td>
-                                    <td>₹{{ "{:,.0f}".format(current_inr_10g) }}</td>
-                                    <td class="highlight">₹{{ "{:,.0f}".format(predicted_inr_10g) }}</td>
+                                    <td>₹{{ "{:,.0f}".format(result.current_inr_per_10g) }}</td>
+                                    <td class="highlight">₹{{ "{:,.0f}".format(result.predicted_inr_per_10g) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Per 10g + GST</td>
-                                    <td>₹{{ "{:,.0f}".format(current_inr_10g_gst) }}</td>
-                                    <td class="highlight">₹{{ "{:,.0f}".format(predicted_inr_10g_gst) }}</td>
+                                    <td>₹{{ "{:,.0f}".format(result.current_inr_per_10g_gst) }}</td>
+                                    <td class="highlight">₹{{ "{:,.0f}".format(result.predicted_inr_per_10g_gst) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Per Kilogram</td>
-                                    <td>₹{{ "{:,.0f}".format(current_inr_kg) }}</td>
-                                    <td class="highlight">₹{{ "{:,.0f}".format(predicted_inr_kg) }}</td>
+                                    <td>₹{{ "{:,.0f}".format(result.current_inr_per_kg) }}</td>
+                                    <td class="highlight">₹{{ "{:,.0f}".format(result.predicted_inr_per_kg) }}</td>
                                 </tr>
                                 <tr>
                                     <td>Per KG + GST</td>
-                                    <td>₹{{ "{:,.0f}".format(current_inr_kg_gst) }}</td>
-                                    <td class="highlight">₹{{ "{:,.0f}".format(predicted_inr_kg_gst) }}</td>
+                                    <td>₹{{ "{:,.0f}".format(result.current_inr_per_kg_gst) }}</td>
+                                    <td class="highlight">₹{{ "{:,.0f}".format(result.predicted_inr_per_kg_gst) }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -112,27 +121,33 @@
                         <!-- GST Card -->
                         <div class="predict-card" style="flex: 1;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                                <span style="font-size: 24px;">🏦</span>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                                    <path d="M3 9h18" />
+                                    <path d="M9 21V9" />
+                                </svg>
                                 <span style="font-weight: 600;">GST Details</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span class="text-muted">Rate</span>
-                                <span>3%</span>
+                                <span>{{ result.gst_rate }}%</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                 <span class="text-muted">Per 10g</span>
-                                <span class="text-green">+₹{{ gst_per_10g }}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span class="text-muted">Per KG</span>
-                                <span class="text-green">+₹{{ "{:,.0f}".format(gst_per_kg) }}</span>
+                                <span class="text-green">+₹{{ "{:,.0f}".format(result.gst_per_10g) }}</span>
                             </div>
                         </div>
 
                         <!-- Model Card -->
                         <div class="predict-card" style="flex: 1;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                                <span style="font-size: 24px;">🤖</span>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                    <path d="M2 17l10 5 10-5" />
+                                    <path d="M2 12l10 5 10-5" />
+                                </svg>
                                 <span style="font-weight: 600;">Model Info</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
@@ -145,7 +160,7 @@
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span class="text-muted">USD/oz</span>
-                                <span>${{ predicted_usd }}</span>
+                                <span>${{ result.predicted_price_usd }}</span>
                             </div>
                         </div>
                     </div>
@@ -154,10 +169,20 @@
                 <!-- Actions -->
                 <div class="result-actions">
                     <a href="/predict" class="btn btn-accent">
-                        🔮 New Prediction
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                        </svg>
+                        New Prediction
                     </a>
                     <a href="/" class="btn btn-secondary">
-                        ← Back to Overview
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                        Back to Overview
                     </a>
                 </div>
             </div>

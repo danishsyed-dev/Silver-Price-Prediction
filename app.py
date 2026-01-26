@@ -45,7 +45,7 @@ def home():
         if current_price_usd:
             print("HOME: Converting to Indian market...")
             indian_prices = indian_converter.convert_to_indian_market(current_price_usd)
-            print(f"HOME: Conversion successful - ₹{indian_prices.get('inr_per_10_grams_with_gst', 'N/A')}/10g")
+            print(f"HOME: Conversion successful - Rs.{indian_prices.get('inr_per_10_grams_with_gst', 'N/A')}/10g")
         else:
             print("HOME: current_price_usd is None")
     except Exception as e:
