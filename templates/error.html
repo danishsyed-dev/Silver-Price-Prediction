@@ -4,54 +4,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - Silver Price Prediction</title>
+    <title>Error | SilverPredictor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <div class="container">
+    <div class="app-wrapper">
+        <!-- Navigation -->
         <nav class="navbar">
-            <div class="logo">
-                <span class="logo-icon">🪙</span>
-                <span class="logo-text">Silver Predictor</span>
-            </div>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="/predict">Predict</a>
-                <a href="/about">About</a>
+            <div class="container nav-container">
+                <div class="logo">
+                    <div class="logo-symbol">Ag</div>
+                    <span class="logo-text">SilverPredictor</span>
+                </div>
+                <div class="nav-links">
+                    <a href="/">Overview</a>
+                    <a href="/predict">Predict</a>
+                    <a href="/about">Methodology</a>
+                </div>
             </div>
         </nav>
 
-        <main class="error-page">
-            <div class="error-container">
-                <div class="error-icon">⚠️</div>
-                <h1>Oops! Something went wrong</h1>
-                <p class="error-message">{{ error }}</p>
+        <!-- Error Content -->
+        <main class="predict-section">
+            <div class="container">
+                <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                    <div class="predict-card" style="padding: 48px;">
+                        <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+                        <h1 style="font-size: 28px; margin-bottom: 16px;">Something went wrong</h1>
+                        <p class="text-muted" style="margin-bottom: 32px;">{{ error }}</p>
 
-                <div class="error-suggestions">
-                    <h3>Possible Solutions:</h3>
-                    <ul>
-                        <li>Make sure you have trained the model first by running the training pipeline</li>
-                        <li>Check your internet connection for fetching live market data</li>
-                        <li>Try again in a few moments</li>
-                    </ul>
-                </div>
+                        <div
+                            style="background: var(--bg-input); border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 32px;">
+                            <p style="font-weight: 600; margin-bottom: 12px;">Possible solutions:</p>
+                            <ul style="margin-left: 20px; color: var(--text-secondary);">
+                                <li style="margin-bottom: 8px;">Make sure the model has been trained</li>
+                                <li style="margin-bottom: 8px;">Check your internet connection</li>
+                                <li>Try again in a few moments</li>
+                            </ul>
+                        </div>
 
-                <div class="error-actions">
-                    <a href="/predict" class="btn btn-primary">
-                        <span>🔄</span> Try Again
-                    </a>
-                    <a href="/" class="btn btn-secondary">
-                        <span>🏠</span> Go Home
-                    </a>
+                        <div style="display: flex; gap: 16px; justify-content: center;">
+                            <a href="/predict" class="btn btn-accent">
+                                🔄 Try Again
+                            </a>
+                            <a href="/" class="btn btn-secondary">
+                                🏠 Go Home
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
 
+        <!-- Footer -->
         <footer class="footer">
-            <p>© 2024 Silver Price Prediction. For educational purposes only.</p>
+            <div class="container footer-content">
+                <p>© 2026 SilverPredictor • Educational Purpose Only</p>
+            </div>
         </footer>
     </div>
 </body>

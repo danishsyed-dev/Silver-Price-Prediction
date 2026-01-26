@@ -21,196 +21,187 @@
                 </div>
                 <div class="nav-links">
                     <a href="/" class="active">Overview</a>
-                    <a href="/predict">Analysis Tool</a>
+                    <a href="/predict">Predict</a>
                     <a href="/about">Methodology</a>
                 </div>
             </div>
         </nav>
 
-        <!-- Hero Section -->
-        <main class="hero-section">
-            <div class="container hero-container">
-                <div class="hero-content">
-                    <span class="badge-pill">Live Indian Market Data</span>
-                    <h1 class="hero-title">
-                        Intelligent Silver Price <br>
-                        <span class="highlight-text">Forecasting & Analysis</span>
-                    </h1>
-                    <p class="hero-subtitle">
-                        Advanced algorithmic predictions for the Indian silver market.
-                        Get real-time rates including GST, import duties, and accurate next-day forecasts.
-                    </p>
-                    <div class="hero-actions">
-                        <a href="/predict" class="btn btn-primary">
-                            Launch Analysis Tool
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M5 12h14M12 5l7 7-7 7" />
-                            </svg>
-                        </a>
-                        <a href="/about" class="btn btn-outline">
-                            View Methodology
-                        </a>
+        <!-- Bento Grid Layout -->
+        <main class="bento-section">
+            <div class="container">
+                <div class="bento-grid">
+
+                    <!-- Hero Price Card (Large) -->
+                    <div class="bento-card bento-hero">
+                        <div class="price-hero">
+                            <div class="price-hero-header">
+                                <div class="price-label">
+                                    <span class="live-dot"></span>
+                                    <span class="price-label-text">Live Silver Rate</span>
+                                </div>
+                                <span class="price-badge">🇮🇳 India</span>
+                            </div>
+
+                            <div class="price-main">
+                                {% if indian_prices %}
+                                <div class="price-value">
+                                    ₹{{ "{:,.0f}".format(indian_prices.inr_per_10_grams_with_gst) }}
+                                    <span class="price-unit">/10g</span>
+                                </div>
+                                <p class="price-subtitle">Including 3% GST • {{ indian_prices.last_updated }}</p>
+                                {% else %}
+                                <div class="price-value">
+                                    Loading...
+                                </div>
+                                <p class="price-subtitle">Fetching live rates</p>
+                                {% endif %}
+                            </div>
+
+                            <a href="/predict" class="btn btn-primary" style="width: fit-content;">
+                                Get Tomorrow's Prediction →
+                            </a>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Live Price Widget -->
-                <div class="hero-widget">
-                    {% if indian_prices %}
-                    <div class="market-card">
-                        <div class="card-header-clean">
-                            <span class="status-indicator live"></span>
-                            <span class="header-label">LIVE MARKET RATES (INDIA)</span>
-                            <span class="header-currency">INR (₹)</span>
-                        </div>
-
-                        <div class="market-grid">
-                            <!-- 1 Gram -->
-                            <div class="market-row">
-                                <div class="market-col unit">
-                                    <span class="unit-code">1G</span>
-                                    <span class="unit-name">Silver Gram</span>
-                                </div>
-                                <div class="market-col price">
-                                    <span class="price-val">₹{{ indian_prices.inr_per_gram_with_gst | round(0) | int
-                                        }}</span>
-                                    <span class="price-sub">incl. GST</span>
-                                </div>
+                    <!-- Side Card - Market Status -->
+                    <div class="bento-card bento-side card-blue">
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-value">
+                                {% if indian_prices %}
+                                ${{ indian_prices.usd_price }}
+                                {% else %}
+                                --
+                                {% endif %}
                             </div>
-
-                            <!-- 10 Grams (Focus) -->
-                            <div class="market-row focus">
-                                <div class="market-col unit">
-                                    <span class="unit-code">10G</span>
-                                    <span class="unit-name">Silver Bar</span>
-                                </div>
-                                <div class="market-col price">
-                                    <span class="price-val large">₹{{ indian_prices.inr_per_10_grams_with_gst | round(0)
-                                        | int }}</span>
-                                    <span class="price-sub">₹{{ indian_prices.inr_per_10_grams | round(0) | int }} ex.
-                                        GST</span>
-                                </div>
-                            </div>
-
-                            <!-- 1 KG -->
-                            <div class="market-row">
-                                <div class="market-col unit">
-                                    <span class="unit-code">1KG</span>
-                                    <span class="unit-name">Silver Brick</span>
-                                </div>
-                                <div class="market-col price">
-                                    <span class="price-val">₹{{ "{:,.0f}".format(indian_prices.inr_per_kg_with_gst)
-                                        }}</span>
-                                    <span class="price-sub">incl. GST</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="market-footer">
-                            <div class="stat-item">
-                                <span class="stat-label">USD/INR</span>
-                                <span class="stat-val">₹{{ indian_prices.usd_to_inr_rate }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Global Spot</span>
-                                <span class="stat-val">${{ indian_prices.usd_price }}/oz</span>
+                            <div class="stat-label">International Spot (USD/oz)</div>
+                            <div class="stat-change mt-auto">
+                                <span class="live-badge">LIVE</span>
                             </div>
                         </div>
                     </div>
-                    {% else %}
-                    <!-- Loading State -->
-                    <div class="market-card loading-state">
-                        <div class="spinner"></div>
-                        <p>Fetching Live Market Data...</p>
+
+                    <!-- Price Cards Row -->
+                    <div class="bento-card bento-small">
+                        <div class="price-grid-card">
+                            <div class="price-grid-header">Per Gram</div>
+                            <div class="price-grid-value">
+                                {% if indian_prices %}
+                                ₹{{ indian_prices.inr_per_gram_with_gst | round(0) | int }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            <div class="price-grid-sub">incl. GST</div>
+                        </div>
                     </div>
-                    {% endif %}
+
+                    <div class="bento-card bento-small">
+                        <div class="price-grid-card">
+                            <div class="price-grid-header">Per 100 Grams</div>
+                            <div class="price-grid-value">
+                                {% if indian_prices %}
+                                ₹{{ "{:,.0f}".format(indian_prices.inr_per_100_grams_with_gst) }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            <div class="price-grid-sub">incl. GST</div>
+                        </div>
+                    </div>
+
+                    <div class="bento-card bento-small">
+                        <div class="price-grid-card">
+                            <div class="price-grid-header">Per Kilogram</div>
+                            <div class="price-grid-value">
+                                {% if indian_prices %}
+                                ₹{{ "{:,.0f}".format(indian_prices.inr_per_kg_with_gst) }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            <div class="price-grid-sub">incl. GST</div>
+                        </div>
+                    </div>
+
+                    <div class="bento-card bento-small">
+                        <div class="price-grid-card">
+                            <div class="price-grid-header">Exchange Rate</div>
+                            <div class="price-grid-value">
+                                {% if indian_prices %}
+                                ₹{{ indian_prices.usd_to_inr_rate }}
+                                {% else %}
+                                --
+                                {% endif %}
+                            </div>
+                            <div class="price-grid-sub">USD/INR</div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Cards -->
+                    <div class="bento-card bento-medium card-coral">
+                        <div class="stat-card">
+                            <div class="stat-icon">🤖</div>
+                            <div class="stat-value">ML</div>
+                            <div class="stat-label">Powered Predictions</div>
+                            <p class="stat-change" style="color: white; opacity: 0.9;">
+                                Lasso Regression • 98.3% R²
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bento-card bento-medium">
+                        <div class="stat-card">
+                            <div class="stat-icon">🏦</div>
+                            <div class="stat-value">3%</div>
+                            <div class="stat-label">GST Included</div>
+                            <p class="stat-change">
+                                As per Indian tax law
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bento-card bento-medium">
+                        <div class="stat-card">
+                            <div class="stat-icon">⏱️</div>
+                            <div class="stat-value">Live</div>
+                            <div class="stat-label">Real-time Updates</div>
+                            <p class="stat-change">
+                                MCX market hours
+                            </p>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
 
-        <!-- Features Grid -->
-        <section class="features-section">
-            <div class="container">
-                <div class="features-grid-clean">
-                    <div class="feature-box">
-                        <div class="feature-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="2" y="5" width="20" height="14" rx="2" />
-                                <line x1="2" y1="10" x2="22" y2="10" />
-                            </svg>
-                        </div>
-                        <h3>Smart Conversion</h3>
-                        <p>Real-time currency conversion adjusted for Indian import duties and market premiums.</p>
-                    </div>
-
-                    <div class="feature-box">
-                        <div class="feature-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                            </svg>
-                        </div>
-                        <h3>Tax Inclusive</h3>
-                        <p>Automated 3% GST calculation on all forecasts to show the final consumer price.</p>
-                    </div>
-
-                    <div class="feature-box">
-                        <div class="feature-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                            </svg>
-                        </div>
-                        <h3>AI Precision</h3>
-                        <p>Powered by machine learning algorithms analyzing 20+ technical market indicators.</p>
-                    </div>
-
-                    <div class="feature-box">
-                        <div class="feature-icon-box">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M3 3v18h18" />
-                                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-                            </svg>
-                        </div>
-                        <h3>Trend Analysis</h3>
-                        <p>Daily directional forecasts helping you identify optimal buying opportunities.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Footer -->
-        <footer class="footer-clean">
+        <footer class="footer">
             <div class="container footer-content">
-                <p>&copy; 2026 SilverPredictor. Educational Purpose Only.</p>
-                <p class="footer-disclaimer">
-                    Market rates are indicative. Actual prices depend on local jeweller margins, purity, and making
-                    charges.
-                </p>
+                <p>© 2026 SilverPredictor • Educational Purpose Only • Prices are indicative</p>
             </div>
         </footer>
     </div>
 
-    <!-- JavaScript for Live Fetch -->
+    <!-- JavaScript for Fallback Price Fetch -->
+    {% if not indian_prices %}
     <script>
-        {% if not indian_prices %}
         async function fetchCurrentPrice() {
             try {
                 const response = await fetch('/api/current-price');
                 const data = await response.json();
                 if (data.success) {
-                    location.reload(); // Refresh to show the full card
+                    location.reload();
                 }
             } catch (error) {
-                console.error('Error fetching prices');
+                console.error('Price fetch error:', error);
             }
         }
         fetchCurrentPrice();
-        {% endif %}
     </script>
+    {% endif %}
 </body>
 
 </html>

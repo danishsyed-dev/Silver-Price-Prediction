@@ -12,6 +12,7 @@
 
 <body>
     <div class="app-wrapper">
+        <!-- Navigation -->
         <nav class="navbar">
             <div class="container nav-container">
                 <div class="logo">
@@ -20,113 +21,147 @@
                 </div>
                 <div class="nav-links">
                     <a href="/">Overview</a>
-                    <a href="/predict">Analysis Tool</a>
+                    <a href="/predict">Predict</a>
                     <a href="/about" class="active">Methodology</a>
                 </div>
             </div>
         </nav>
 
+        <!-- About Section -->
         <main class="about-section">
-            <div class="container about-container">
-                <div class="content-wrapper">
-                    <div class="section-header">
-                        <h1>Technical Methodology</h1>
-                        <p>Understanding the pricing model and Indian market adjustments.</p>
+            <div class="container">
+                <div class="about-header">
+                    <h1>Technical Methodology</h1>
+                    <p class="text-muted">Understanding our pricing model and Indian market calculations</p>
+                </div>
+
+                <div class="about-content">
+                    <!-- Pricing Model Card -->
+                    <div class="about-card">
+                        <h2>🇮🇳 Indian Market Pricing Model</h2>
+                        <p>Our engine converts international spot prices to Indian domestic rates by accounting for
+                            currency exchange, import duties, and local taxation.</p>
+
+                        <table class="about-table">
+                            <thead>
+                                <tr>
+                                    <th>Step</th>
+                                    <th>Component</th>
+                                    <th>Adjustment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Global Benchmark</td>
+                                    <td>COMEX/MetalpriceAPI Silver (XAG)</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Currency Exchange</td>
+                                    <td>Real-time USD → INR</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Import Duty</td>
+                                    <td>+6% (Basic Customs + AIDC)</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>Market Premium</td>
+                                    <td>+10% (Logistics, Dealer Margins)</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>GST</td>
+                                    <td>+3% (Goods & Services Tax)</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="info-block">
-                        <h2>Indian Market Pricing Model</h2>
-                        <p>
-                            Our pricing engine systematically converts international spot prices to Indian domestic
-                            retail rates
-                            by accounting for currency exchange, import duties, and local taxation laws.
-                        </p>
-
-                        <div class="methodology-table-wrapper">
-                            <table class="methodology-table">
-                                <thead>
-                                    <tr>
-                                        <th>Sequence</th>
-                                        <th>Component</th>
-                                        <th>Adjustment Factor</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>Global Benchmark</td>
-                                        <td>COMEX Silver Futures (SI=F)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>Currency Exchange</td>
-                                        <td>Real-time USD to INR Conversion</td>
-                                    </tr>
-                                    <tr>
-                                        <td>3</td>
-                                        <td>Import Duty</td>
-                                        <td>+6% (Basic Customs + AIDC)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>4</td>
-                                        <td>Market Premium</td>
-                                        <td>+10% (Logistics, Dealer Margins, MCX Spread)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>5</td>
-                                        <td>Local Taxation</td>
-                                        <td>+3% GST (Goods & Service Tax)</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="grid-2-col">
-                        <div class="info-block">
-                            <h2>Technical Analysis</h2>
-                            <p>We utilize a sophisticated machine learning pipeline examining 20+ indicators:</p>
-                            <ul class="feature-list">
-                                <li>Moving Averages (5, 10, 20, 50-day)</li>
-                                <li>Relative Strength Index (RSI)</li>
-                                <li>MACD (Moving Average Convergence Divergence)</li>
-                                <li>Bollinger Band volatility measurements</li>
+                    <!-- Two Column Grid -->
+                    <div class="about-grid">
+                        <!-- Technical Analysis -->
+                        <div class="about-card">
+                            <h2>📊 Technical Analysis</h2>
+                            <p>We analyze 20+ technical indicators for predictions:</p>
+                            <ul style="margin-top: 16px; margin-left: 20px; color: var(--text-secondary);">
+                                <li style="margin-bottom: 8px;">Moving Averages (5, 10, 20, 50-day)</li>
+                                <li style="margin-bottom: 8px;">Relative Strength Index (RSI)</li>
+                                <li style="margin-bottom: 8px;">MACD Indicator</li>
+                                <li style="margin-bottom: 8px;">Bollinger Band volatility</li>
                                 <li>Historical lag patterns (1-21 days)</li>
                             </ul>
                         </div>
 
-                        <div class="info-block">
-                            <h2>Algorithmic Models</h2>
-                            <p>Our ensemble approach evaluates multiple regression models to ensure optimal accuracy:
-                            </p>
+                        <!-- ML Models -->
+                        <div class="about-card">
+                            <h2>🤖 Machine Learning Models</h2>
+                            <p>Our ensemble approach evaluates multiple regression models:</p>
                             <div class="tech-tags">
-                                <span>XGBoost</span>
-                                <span>LightGBM</span>
-                                <span>Random Forest</span>
-                                <span>Lasso Regression</span>
-                                <span>Ridge Regression</span>
+                                <span class="tech-tag">Lasso ✓</span>
+                                <span class="tech-tag">XGBoost</span>
+                                <span class="tech-tag">LightGBM</span>
+                                <span class="tech-tag">Random Forest</span>
+                                <span class="tech-tag">Ridge</span>
                             </div>
+                            <p style="margin-top: 16px; font-size: 14px;">
+                                <span class="text-green">Best Model:</span> Lasso Regression with 98.36% R² score
+                            </p>
                         </div>
                     </div>
 
-                    <div class="info-block">
-                        <h2>Developer API</h2>
+                    <!-- Market Hours Card -->
+                    <div class="about-card">
+                        <h2>⏱️ Smart Caching & Market Hours</h2>
+                        <p>Our system optimizes API usage based on MCX trading hours:</p>
+
+                        <table class="about-table">
+                            <thead>
+                                <tr>
+                                    <th>Time (IST)</th>
+                                    <th>Market Status</th>
+                                    <th>Price Updates</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>9:00 AM - 11:30 PM</td>
+                                    <td><span class="text-green">Market Open</span></td>
+                                    <td>Every 2 hours</td>
+                                </tr>
+                                <tr>
+                                    <td>11:30 PM - 9:00 AM</td>
+                                    <td><span class="text-red">Market Closed</span></td>
+                                    <td>Cached until open</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- API Card -->
+                    <div class="about-card">
+                        <h2>🔌 Developer API</h2>
                         <p>Access our prediction engine programmatically:</p>
-                        <div class="api-box">
-                            <div class="endpoint">
-                                <span class="badge">GET</span>
-                                <span class="url">/api/predict</span>
+
+                        <div style="background: #000; padding: 20px; border-radius: 12px; margin-top: 16px;">
+                            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+                                <span class="text-green" style="font-weight: 600;">GET</span>
+                                <code class="text-blue">/api/predict</code>
                             </div>
-                            <p>Returns JSON object with full pricing breakdown including GST components.</p>
+                            <p class="text-muted" style="font-size: 13px;">Returns JSON with full pricing breakdown
+                                including GST components</p>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
 
-        <footer class="footer-clean">
+        <!-- Footer -->
+        <footer class="footer">
             <div class="container footer-content">
-                <p>&copy; 2026 SilverPredictor. Educational Purpose Only.</p>
+                <p>© 2026 SilverPredictor • Educational Purpose Only</p>
             </div>
         </footer>
     </div>

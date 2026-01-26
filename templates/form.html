@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Analysis | SilverPredictor</title>
+    <title>Price Prediction | SilverPredictor</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,6 +12,7 @@
 
 <body>
     <div class="app-wrapper">
+        <!-- Navigation -->
         <nav class="navbar">
             <div class="container nav-container">
                 <div class="logo">
@@ -20,116 +21,123 @@
                 </div>
                 <div class="nav-links">
                     <a href="/">Overview</a>
-                    <a href="/predict" class="active">Analysis Tool</a>
+                    <a href="/predict" class="active">Predict</a>
                     <a href="/about">Methodology</a>
                 </div>
             </div>
         </nav>
 
+        <!-- Predict Section -->
         <main class="predict-section">
-            <div class="container predict-container">
-                <div class="predict-header-clean">
+            <div class="container">
+                <div class="predict-header">
                     <h1>Silver Price Forecast</h1>
-                    <p>Generate next-day price predictions based on real-time market indicators.</p>
+                    <p>Generate next-day predictions based on real-time market data and ML analysis</p>
                 </div>
 
-                <div class="analysis-grid">
-                    <!-- Left: Current Market Status -->
-                    <div class="market-status-card">
-                        {% if indian_prices %}
-                        <div class="status-header">
-                            <h3>Current Market Status</h3>
+                <div class="predict-grid">
+                    <!-- Current Market Card -->
+                    <div class="predict-card">
+                        <div class="predict-card-header">
+                            <span class="predict-card-title">Current Market</span>
                             <span class="live-badge">LIVE</span>
                         </div>
 
-                        <div class="status-metrics">
-                            <div class="metric-row">
-                                <label>Silver Spot (10g)</label>
-                                <span class="metric-val">₹{{ indian_prices.inr_per_10_grams_with_gst | round(0) | int
-                                    }}</span>
+                        {% if indian_prices %}
+                        <div style="margin-bottom: 24px;">
+                            <div class="price-grid-header">Silver Spot (10g)</div>
+                            <div class="price-grid-value" style="font-size: 36px; color: var(--accent-yellow);">
+                                ₹{{ "{:,.0f}".format(indian_prices.inr_per_10_grams_with_gst) }}
                             </div>
-                            <div class="metric-row secondary">
-                                <label>Excl. GST</label>
-                                <span>₹{{ indian_prices.inr_per_10_grams | round(0) | int }}</span>
-                            </div>
+                            <div class="price-grid-sub">Including 3% GST</div>
+                        </div>
 
-                            <div class="divider"></div>
-
-                            <div class="metric-grid">
-                                <div class="mini-metric">
-                                    <label>1 Gram</label>
-                                    <span>₹{{ indian_prices.inr_per_gram_with_gst | round(0) | int }}</span>
-                                </div>
-                                <div class="mini-metric">
-                                    <label>1 KG</label>
-                                    <span>₹{{ "{:,.0f}".format(indian_prices.inr_per_kg_with_gst) }}</span>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <div class="price-grid-header">Per Gram</div>
+                                <div class="price-grid-value" style="font-size: 20px;">
+                                    ₹{{ indian_prices.inr_per_gram_with_gst | round(0) | int }}
                                 </div>
                             </div>
-
-                            <div class="market-details">
-                                <div class="detail-item">
-                                    <span class="label">USD Rate</span>
-                                    <span class="value">${{ indian_prices.usd_price }}/oz</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Exchange</span>
-                                    <span class="value">₹{{ indian_prices.usd_to_inr_rate }}</span>
+                            <div>
+                                <div class="price-grid-header">Per KG</div>
+                                <div class="price-grid-value" style="font-size: 20px;">
+                                    ₹{{ "{:,.0f}".format(indian_prices.inr_per_kg_with_gst) }}
                                 </div>
                             </div>
                         </div>
+
+                        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span class="text-muted">USD Rate</span>
+                                <span>${{ indian_prices.usd_price }}/oz</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span class="text-muted">Exchange</span>
+                                <span>₹{{ indian_prices.usd_to_inr_rate }}</span>
+                            </div>
+                        </div>
                         {% else %}
-                        <div class="loading-status">
-                            Loading Market Data...
+                        <div class="loading-state">
+                            <p>Loading market data...</p>
                         </div>
                         {% endif %}
                     </div>
 
-                    <!-- Right: Prediction Action -->
-                    <div class="action-card">
-                        <div class="action-header">
-                            <h3>Generate Forecast</h3>
+                    <!-- Prediction Action Card -->
+                    <div class="predict-card">
+                        <div class="predict-card-header">
+                            <span class="predict-card-title">Generate Forecast</span>
                         </div>
 
-                        <div class="process-steps">
-                            <div class="step">
-                                <span class="step-num">1</span>
+                        <div class="predict-steps">
+                            <div class="predict-step">
+                                <span class="step-number">1</span>
                                 <span class="step-text">Analyze global technical indicators</span>
                             </div>
-                            <div class="step">
-                                <span class="step-num">2</span>
+                            <div class="predict-step">
+                                <span class="step-number">2</span>
                                 <span class="step-text">Process historical price patterns</span>
                             </div>
-                            <div class="step">
-                                <span class="step-num">3</span>
-                                <span class="step-text">Calculate local duty & tax impact</span>
+                            <div class="predict-step">
+                                <span class="step-number">3</span>
+                                <span class="step-text">Apply import duty & GST calculations</span>
+                            </div>
+                            <div class="predict-step">
+                                <span class="step-number">4</span>
+                                <span class="step-text">Generate next-day forecast</span>
                             </div>
                         </div>
 
-                        <form action="{{ url_for('predict_price') }}" method="POST" class="predict-form-clean">
-                            <button type="submit" class="btn btn-primary btn-block">
-                                Run Prediction Model
+                        <form action="{{ url_for('predict_price') }}" method="POST">
+                            <button type="submit" class="btn btn-accent btn-block">
+                                🔮 Run Prediction Model
                             </button>
-                            <p class="form-disclaimer">
-                                Prediction will generate a detailed report including next-day forecasts,
-                                expected volatility, and GST-inclusive pricing.
-                            </p>
                         </form>
+
+                        <p class="text-muted" style="text-align: center; margin-top: 16px; font-size: 13px;">
+                            Prediction includes tomorrow's price forecast with GST breakdown
+                        </p>
                     </div>
                 </div>
 
-                <div class="api-docs-clean">
-                    <h3>Developer API Access</h3>
-                    <div class="api-endpoint">
-                        <span class="method">GET</span>
-                        <code class="url">/api/predict</code>
+                <!-- API Section -->
+                <div
+                    style="text-align: center; margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-color);">
+                    <p class="text-muted" style="margin-bottom: 12px;">Developer API Access</p>
+                    <div
+                        style="background: #000; display: inline-flex; padding: 10px 20px; border-radius: 12px; gap: 12px; font-family: monospace;">
+                        <span class="text-green">GET</span>
+                        <span class="text-muted">/api/predict</span>
                     </div>
                 </div>
             </div>
         </main>
 
-        <footer class="footer-clean">
+        <!-- Footer -->
+        <footer class="footer">
             <div class="container footer-content">
-                <p>&copy; 2026 SilverPredictor. Educational Purpose Only.</p>
+                <p>© 2026 SilverPredictor • Educational Purpose Only</p>
             </div>
         </footer>
     </div>
