@@ -278,14 +278,26 @@ class SilverDataFetcher:
     Uses multiple methods to ensure data availability on cloud platforms.
     
     Data sources (in priority order):
-    1. Metals-API.com (if API key is configured) - with 15-min cache
+    1. MetalpriceAPI (if API key is configured) - with smart caching
     2. Yahoo Finance (XAGUSD=X, SI=F, SLV)
     3. Local fallback CSV
+    
+    Smart Caching:
+    - During MCX trading hours (9 AM - 11:30 PM IST): 30-minute cache
+    - Outside trading hours: Cache until market opens
     """
     # Class-level cache (shared across all instances)
     _cached_price = None
     _cache_timestamp = None
-    _cache_ttl = 86400  # 24 hours in seconds (saves API calls - only ~30/month)
+    
+    # MCX Trading Hours (IST)
+    MCX_OPEN_HOUR = 9    # 9:00 AM IST
+    MCX_CLOSE_HOUR = 23  # 11:00 PM IST (simplified from 11:30 PM)
+    MCX_CLOSE_MINUTE = 30  # 11:30 PM IST
+    
+    # Cache durations
+    CACHE_DURING_MARKET = 7200   # 2 hours when market is open (~7 requests/day)
+    CACHE_OUTSIDE_MARKET = 43200  # 12 hours when market is closed (until market opens)
     
     def __init__(self, symbol="SI=F"):
         self.symbol = symbol
@@ -299,20 +311,51 @@ class SilverDataFetcher:
         self.metals_api_key = os.environ.get("METALPRICEAPI_KEY")
         self.metals_api_base = "https://api.metalpriceapi.com/v1"
     
+    def _is_market_open(self):
+        """Check if MCX silver market is currently open (IST timezone)."""
+        # Get current time in IST (UTC+5:30)
+        from datetime import timezone, timedelta
+        ist = timezone(timedelta(hours=5, minutes=30))
+        now_ist = datetime.now(ist)
+        
+        current_hour = now_ist.hour
+        current_minute = now_ist.minute
+        current_time_minutes = current_hour * 60 + current_minute
+        
+        # MCX hours: 9:00 AM to 11:30 PM IST
+        market_open = self.MCX_OPEN_HOUR * 60  # 9:00 AM = 540 minutes
+        market_close = self.MCX_CLOSE_HOUR * 60 + self.MCX_CLOSE_MINUTE  # 11:30 PM = 1410 minutes
+        
+        is_open = market_open <= current_time_minutes <= market_close
+        return is_open, now_ist
+    
+    def _get_cache_ttl(self):
+        """Get cache duration based on market hours."""
+        is_open, now_ist = self._is_market_open()
+        if is_open:
+            return self.CACHE_DURING_MARKET, "MARKET OPEN"
+        else:
+            return self.CACHE_OUTSIDE_MARKET, "MARKET CLOSED"
+    
     def _get_cached_price(self):
-        """Return cached price if still valid."""
+        """Return cached price if still valid based on market hours."""
         if SilverDataFetcher._cached_price and SilverDataFetcher._cache_timestamp:
             age = (datetime.now() - SilverDataFetcher._cache_timestamp).total_seconds()
-            if age < SilverDataFetcher._cache_ttl:
-                print(f"CACHE: Using cached price (age: {int(age)}s)")
+            cache_ttl, market_status = self._get_cache_ttl()
+            
+            if age < cache_ttl:
+                print(f"CACHE: Using cached price (age: {int(age)}s, TTL: {cache_ttl}s, {market_status})")
                 return SilverDataFetcher._cached_price
+            else:
+                print(f"CACHE: Expired (age: {int(age)}s > TTL: {cache_ttl}s)")
         return None
     
     def _set_cached_price(self, price):
-        """Cache the price."""
+        """Cache the price with market-aware TTL."""
         SilverDataFetcher._cached_price = price
         SilverDataFetcher._cache_timestamp = datetime.now()
-        print(f"CACHE: Price cached for 24 hours")
+        cache_ttl, market_status = self._get_cache_ttl()
+        print(f"CACHE: Price cached for {cache_ttl//60} minutes ({market_status})")
     
     def _is_price_reasonable(self, price):
         """Check if price is within reasonable range for silver."""
