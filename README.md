@@ -9,7 +9,7 @@ An end-to-end machine learning project to predict silver prices for the **Indian
 
 ## 🌐 Live Demo
 
-**🚀 Try it now:** [https://silver-price-prediction-ghx8.onrender.com](https://silver-price-prediction-ghx8.onrender.com)
+**🚀 Try it now:** [https://danishali11903-silver-price-prediction.hf.space](https://danishali11903-silver-price-prediction.hf.space/)
 
 ---
 
