@@ -18,12 +18,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . ./
 
-# Expose port
-EXPOSE 8080
+# Expose port (HF Spaces uses 7860)
+EXPOSE 7860
 
 # Environment variables
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
+ENV PORT=7860
 
 # Run the application
 CMD ["python", "app.py"]

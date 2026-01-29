@@ -308,11 +308,13 @@ def about():
 
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 7860))  # HF Spaces uses 7860, Render uses 8080
+    
     print("\n" + "="*60)
     print(" Silver Price Prediction - Indian Market")
     print("="*60)
-    print("Starting server at http://localhost:8080")
+    print(f"Starting server at http://localhost:{port}")
     print("Prices shown in INR with GST (3%)")
     print("="*60 + "\n")
     
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
